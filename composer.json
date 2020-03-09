@@ -1,0 +1,25 @@
+{
+    "name": "turbo/turbo-m3u8",
+    "description": "m3u8\u0000\u0000/m3u8\u0000\u0000\u0000/m3u8",
+    "keywords": ["m3u8"],
+    "license": "MIT",
+    "require": {
+        "php": "^7.0"
+    },
+    "authors": [
+        {
+            "name": "turbo",
+            "email": "turbole@163.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "TurboM3u8\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\TurboM3u8\\": "tests"
+        }
+    }
+}

@@ -1,0 +1,9 @@
+#/nbproject/
+/vendor/
+/m3u83/
+test.php
+composer.phar
+composer.lock
+phpunit.xml
+sami.phar
+.idea/
