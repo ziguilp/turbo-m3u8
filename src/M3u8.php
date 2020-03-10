@@ -55,8 +55,8 @@ class M3u8{
         return $this;
     }
 
-    public function insert(int $starttime, $file){
-
+    public function insert(int $starttime, $file, $duration){
+        (new Insert($this->getReader()))->add( $starttime, $file, $duration)->insert();
         return $this;
     }
 

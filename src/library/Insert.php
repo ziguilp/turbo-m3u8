@@ -12,64 +12,65 @@ class Insert{
     
     protected $duration = null;
     
-    protected $m3u8ContentLinesArr = [];
+    protected $addsList = [];
 
-    public function __construct( Read $reader, int $startTime = 0, int $duration = null)
+    public function __construct( Read $reader )
     {
         $this->reader    = $reader;
-        $this->startTime = $startTime;
-        $this->duration  = $duration;
+    }
+
+
+    public function add(int $insertPoint, $file, $duration){
+        $this->addsList[$insertPoint] = [
+            'file' => $file,
+            'duration' => $duration,
+        ];
+        return $this;
     }
 
     /**
      * 裁切
      * @param $method 起始点偏移方法 left 时间左偏 right 时间右偏移
      */
-    public function clip($method = 'left'){
-
-        if($this->startTime == 0 && !$this->duration){
+    public function insert($method = 'left'){
+        if(empty($this->addsList)){
             return $this->reader;
         }
-
         $method = strtolower($method);
         $contents = $this->reader->getContentAsLines();
-        $duration = 0;
-        $startTime = 0;
         $lines = [];
         foreach ($contents as $key => $line) {
             #非结束语句而且在时间允许的范围内有效
             if( $line['totaltime'] == 0  ){
                 $lines[] = $line['content'];
             }else{
-                
-                if($startTime == 0){
-                    $startTime = doubleval($line['totaltime']);
-                }
+                if($line['type'] == Util::LINE_TYPE_INF);{
+                    $insertPoint = $this->pickInserPoint($line['totaltime']);
+                    if($insertPoint){
+                        
+                        if($contents[$key - 1]['type'] == Util::LINE_TYPE_TSFILE)
+                            $lines[] = '#EXT-X-DISCONTINUITY';
 
-                $duration = doubleval($line['totaltime']) - $startTime;
-                
-                if($duration >= $this->duration && ($line['type'] == Util::LINE_TYPE_TSFILE || $line['type'] == Util::LINE_TYPE_END )){
-                    $lines[] = $line['content'];
-                    break;
+                        $lines[] = "#EXTINF:".$insertPoint['duration'].",";
+                        $lines[] = $insertPoint['file'];
+                        $lines[] = "#EXT-X-DISCONTINUITY";
+                    }
                 }
-
-                if( $line['totaltime'] >= $this->startTime ){
-                    $lines[] = $line['content'];
-                }
-                
-            }
-        }
-
-        #添加结束语句
-        $count = count($lines);
-        if($count > 1){
-            $lastLine = $lines[$count - 1];
-            if(!Util::isEndLine($lastLine)){
-                $lines[] = Util::getEndStr();
+                $lines[] = $line['content'];
             }
         }
         $this->reader->setContentLines($lines);
         return $this->reader;
+    }
+
+    protected function pickInserPoint($currentTotalTime){
+        foreach ($this->addsList as $key => $value) {
+            if( $key <= $currentTotalTime ){
+                unset($this->addsList[$key]);
+                return $value;
+            }
+        }
+        return null;
     }
 }
 

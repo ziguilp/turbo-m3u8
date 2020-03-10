@@ -35,12 +35,12 @@ $obj->download($saveDir);
 
 ### 插入广告
 
-##### 非精准插入，由于ts的精度决定
+##### 非精准插入，由于ts的精度决定，所插入广告必须和原文件一致的加密方法和密钥或者不加密
 
 ```php
 $fromTime = 10;
 $duration = 20;
-$obj->intsert($adFileName, $fromTime, $duration);
+$obj->insert( $fromTime, $adFileName, $duration);
 $obj->save($newFileName);
 ```
 
