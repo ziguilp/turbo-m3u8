@@ -46,33 +46,31 @@ class Read{
      * 加密方法
      */
     public function getEncryptMethod(){
-
+        return $this->info['encrypt_method'];
     }
 
     /**
      * 加密密钥地址
      */
     public function getEncryptKeyFile(){
-
+        return $this->info['encrypt_key_file'];
     }
 
     /**
      * 总时长
      */
     public function getTotalTime(){
-
-    }
-
-    /**
-     * 是否加密
-     */
-    public function isEncrypted(){
-
+        return $this->info['total_time'];
     }
 
     public function getFileInfo(){
         return $this->file_info;
     }
+
+    public function getFileName(){
+        return $this->file_name;
+    }
+
 
     public function getInfo(){
         return $this->info;
@@ -83,6 +81,16 @@ class Read{
         return $this;
     }
 
+    /**
+     * 设置内容
+     */
+    public function setContent(String $content){
+        $this->readByLine(explode("\n", $content));
+        $this->check();
+        $this->content = $content;
+        return $this;
+    }
+    
     /**
      * 读取内容
      */

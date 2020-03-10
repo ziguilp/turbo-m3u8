@@ -1,8 +1,13 @@
 <?php
 
 namespace TurboM3u8;
+
 use TurboM3u8\library\Read;
 use TurboM3u8\library\Build;
+use TurboM3u8\library\Util;
+use TurboM3u8\library\Clip;
+use TurboM3u8\library\Insert;
+use TurboM3u8\library\Download;
 
 class M3u8{
     
@@ -40,8 +45,13 @@ class M3u8{
         return $this->getReader()->getInfo();
     }
 
-    public function clip(int $starttime, int $duration = null){
+    public function clip(int $starttime = 0, int $duration = null, $method = 'left'){
+        (new Clip($this->getReader(), $starttime, $duration))->clip($method);
+        return $this;
+    }
 
+    public function download($dir){
+        (new Download($this->getReader()))->setSaveDir($dir)->download();
         return $this;
     }
 
@@ -51,7 +61,11 @@ class M3u8{
     }
 
     public function save($file_name = null){
-
-        return $this;
+        if(!$file_name){
+            $file_name = $this->file_name;
+        }
+        $build =  (new Build())->parse($this->file_name);
+        $content = $build->buildM3u8($this->getReader());
+        return Util::save($file_name, $content);
     }
 }

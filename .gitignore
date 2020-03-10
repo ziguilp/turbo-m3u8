@@ -1,5 +1,6 @@
 #/nbproject/
 /vendor/
+/download/
 /m3u83/
 test.php
 composer.phar

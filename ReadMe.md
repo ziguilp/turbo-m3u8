@@ -26,6 +26,13 @@ $obj->clip($fromTime, $duration);
 $obj->save($newFileName);
 ```
 
+### 下载
+
+
+```php
+$obj->download($saveDir);
+```
+
 ### 插入广告
 
 ##### 非精准插入，由于ts的精度决定

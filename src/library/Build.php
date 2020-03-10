@@ -2,6 +2,9 @@
 
 namespace TurboM3u8\library;
 
+use TurboM3u8\library\Read;
+use TurboM3u8\library\Util;
+
 /**
  * 生成m3u8
  */
@@ -122,5 +125,30 @@ class Build{
         return $this->domain.$this->getPreFixPath('').'/'.$str;
     }
 
+    
+    /**
+     * 构造新路径
+     */
+    public function buildM3u8(Read $reader){
+        $content = "";
+
+        foreach ($reader->getContentAsLines() as $key => $value) {
+            if($value['type'] == Util::LINE_TYPE_TSFILE)
+            {
+                $content .= $this->build($value['content'])."\n";
+            }elseif($value['type'] == Util::LINE_TYPE_KEY){
+                $config = $reader->getInfo();
+                $content .= Util::replaceKeyStr($value['content'], [
+                    'encrypt_method' => $config['encrypt_method'] ,
+                    'iv' => $config['iv'],
+                    'encrypt_key_file' => $config['encrypt_key_file'] ? $this->build($config['encrypt_key_file']) : '',
+                ])."\n";
+            }else{
+                $content .= $value['content']."\n";
+            }
+        }
+
+        return $content;
+    }
 }
 

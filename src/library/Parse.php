@@ -17,6 +17,10 @@ class Parse{
     {
         $this->reader = $reader;
         $this->readerInfo = $reader->getInfo();
+        $this->readerInfo['total_time'] = 0;
+        $this->readerInfo['encrypt_method'] = '';
+        $this->readerInfo['encrypt_key_file'] = '';
+        $this->readerInfo['iv'] = null;
     }
 
     public function analyse($str){
@@ -25,25 +29,27 @@ class Parse{
             'type' => '',
             'totaltime' => 0,
         ];
+        
         if(preg_match('/\#EXTINF:(.*?)\,/', $str, $res)){
             $lineData['type'] = Util::LINE_TYPE_INF;
             $lineData['totaltime'] = $this->readerInfo['total_time'] += doubleval($res[1]);
+        }elseif(Util::isTsFileLine($str)){
+            $lineData['type'] = Util::LINE_TYPE_TSFILE;
+            $lineData['totaltime'] = $this->readerInfo['total_time'];
         }elseif(strpos($str, '#EXT-X-KEY')!==false){
             $lineData['type'] = Util::LINE_TYPE_KEY;
             $this->getEncryptInfo($str);
         }elseif(preg_match('/\#EXT-X-VERSION:(.*?)$/', $str, $res)){
             $lineData['type'] = Util::LINE_TYPE_VERSION;
             $this->readerInfo['version'] = $res[1];
-        }elseif(preg_match('/\#EXTM3U$/', $str, $res)){
+        }elseif(Util::isDefineLine($str)){
             $lineData['type'] = Util::LINE_TYPE_DEFINED;
         }elseif(preg_match('/\#EXT-X-TARGETDURATION:(.*?)$/', $str, $res)){
             $lineData['type'] = Util::LINE_TYPE_TARGETDURATION;
         }elseif(preg_match('/\#EXT-X-MEDIA-SEQUENCE:(.*?)$/', $str, $res)){
             $lineData['type'] = Util::LINE_TYPE_SEQUENCE;
-        }elseif(preg_match('/\#EXT-X-ENDLIST:(.*?)$/', $str, $res)){
+        }elseif(Util::isEndLine($str)){
             $lineData['type'] = Util::LINE_TYPE_END;
-        }elseif(!preg_match('/^\#EXT/', $str, $res) && !preg_match('/^\#/', $str, $res)){
-            $lineData['type'] = Util::LINE_TYPE_TSFILE;
         }
 
         $this->reader->setInfo($this->readerInfo);
@@ -52,27 +58,21 @@ class Parse{
     }
 
     protected function getEncryptInfo($str){
-        $arr = explode(",", str_replace("#EXT-X-KEY:",'', $str));
-        foreach ($arr as $key => $value) {
-            $a = explode("=", $value);
-            if($a && isset($a[0]) ){
-                $k = strtoupper($a[0]);
-                if( $k === "METHOD")
-                {
-                    $this->readerInfo['encrypt_method'] = isset($a[1]) ? $a[1] : '';
-                }
-                else
-                if( $k === "URI")
-                {
-                    $this->readerInfo['encrypt_key_file'] = isset($a[1]) ? str_replace("\"","", $a[1]) : '';
-                }else
-                if( $k === "IV")
-                {
-                    $this->readerInfo['iv'] = isset($a[1]) ? $a[1] : '';
-                }
-            }
+        $einfo = Util::parseKeyLine($str);
+
+        if( isset($einfo['METHOD']))
+        {
+            $this->readerInfo['encrypt_method'] = $einfo['METHOD'];
         }
-        unset($key, $value, $k, $a, $arr);
+        if( isset($einfo['URI']))
+        {
+            $this->readerInfo['encrypt_key_file'] = $einfo['URI'];
+        }
+        if( isset($einfo['IV']))
+        {
+            $this->readerInfo['iv'] = $einfo['IV'];
+        }
+        unset($einfo);
     }
 
 }
