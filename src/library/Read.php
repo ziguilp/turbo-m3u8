@@ -70,6 +70,10 @@ class Read{
 
     }
 
+    public function getFileInfo(){
+        return $this->file_info;
+    }
+
     public function getInfo(){
         return $this->info;
     }

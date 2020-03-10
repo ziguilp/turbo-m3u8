@@ -50,7 +50,7 @@ class M3u8{
         return $this;
     }
 
-    public function build(){
+    public function save($file_name = null){
 
         return $this;
     }
