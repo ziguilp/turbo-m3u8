@@ -100,29 +100,44 @@ class Read{
         if(!$this->content_lines){
             $content = $this->getContent();
             $content_lines = explode("\n", $content);
-            $this->content_lines = [];
-            $parse = new Parse($this);
-            foreach ($content_lines as $key => $line) {
-                $line = trim($line);
-                if($line){
-                    $parse->analyse($line);
-                    $this->content_lines[] = $line;
-                }
-            }
-            unset($content, $content_lines, $key, $line, $parse);
+            $this->readByLine($content_lines);
+            unset($content, $content_lines);
         }
         return $this->content_lines;
     }
 
     /**
+     * 设置行内容
+     */
+    public function setContentLines(Array $lines){
+        $this->readByLine($lines);
+        $this->check();
+        $this->content = implode("\n", $lines);
+        return $this;
+    }
+
+    /**
      * 是否为m3u8格式
      */
-    public function check(){
+    protected function check(){
         $lines = $this->getContentAsLines();
-        if(isset($lines[0]) && $lines[0] == "#EXTM3U"){
+        if(isset($lines[0]) && $lines[0]['content'] == "#EXTM3U"){
             return true;
         }
         return false;
+    }
+
+    protected function readByLine(Array $content_lines){
+        $this->content_lines = [];
+        $parse = new Parse($this);
+        foreach ($content_lines as $key => $line) {
+            $line = trim($line);
+            if($line){
+                $this->content_lines[] = $parse->analyse($line);
+            }
+        }
+        unset($content_lines, $key, $line, $parse);
+        return $this;
     }
 
 }

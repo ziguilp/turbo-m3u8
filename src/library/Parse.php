@@ -3,6 +3,7 @@
 namespace TurboM3u8\library;
 
 use TurboM3u8\library\Read;
+use TurboM3u8\library\Util;
 
 /**
  * 解析m3u8
@@ -19,16 +20,35 @@ class Parse{
     }
 
     public function analyse($str){
-             
-        if(preg_match('/\#EXTINF:(.*?)\,$/', $str, $res)){
-            $this->readerInfo['total_time'] += doubleval($res[1]);
+        $lineData = [
+            'content' => $str,
+            'type' => '',
+            'totaltime' => 0,
+        ];
+        if(preg_match('/\#EXTINF:(.*?)\,/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_INF;
+            $lineData['totaltime'] = $this->readerInfo['total_time'] += doubleval($res[1]);
         }elseif(strpos($str, '#EXT-X-KEY')!==false){
+            $lineData['type'] = Util::LINE_TYPE_KEY;
             $this->getEncryptInfo($str);
         }elseif(preg_match('/\#EXT-X-VERSION:(.*?)$/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_VERSION;
             $this->readerInfo['version'] = $res[1];
+        }elseif(preg_match('/\#EXTM3U$/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_DEFINED;
+        }elseif(preg_match('/\#EXT-X-TARGETDURATION:(.*?)$/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_TARGETDURATION;
+        }elseif(preg_match('/\#EXT-X-MEDIA-SEQUENCE:(.*?)$/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_SEQUENCE;
+        }elseif(preg_match('/\#EXT-X-ENDLIST:(.*?)$/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_END;
+        }elseif(!preg_match('/^\#EXT/', $str, $res) && !preg_match('/^\#/', $str, $res)){
+            $lineData['type'] = Util::LINE_TYPE_TSFILE;
         }
 
         $this->reader->setInfo($this->readerInfo);
+
+        return $lineData;
     }
 
     protected function getEncryptInfo($str){
