@@ -50,8 +50,8 @@ class M3u8{
         return $this;
     }
 
-    public function download($dir){
-        (new Download($this->getReader()))->setSaveDir($dir)->download();
+    public function download($dir, $process_callback = null){
+        (new Download($this->getReader()))->setSaveDir($dir)->setProcess($process_callback)->download();
         return $this;
     }
 

@@ -12,12 +12,21 @@ class Download{
 
     protected $save_dir = null;
 
+    protected $process_callback = null;
+
     public function __construct( Read $reader, $dir = null)
     {
         $this->reader    = $reader;
         if($dir){
             $this->setSaveDir($dir);
         }
+    }
+
+    public function setProcess($process_callback){
+        if(is_callable($process_callback)){
+            $this->process_callback = $process_callback;
+        }
+        return $this;
     }
 
     public function setSaveDir($dir){
@@ -40,14 +49,18 @@ class Download{
         // $content = $build->buildM3u8($this->reader);
         // $this->reader->setContent($content);
         $lines = $this->reader->getContentAsLines();
+        $config = $this->reader->getInfo();
         $newContent = [];
+        $totalTime = $config['total_time'];
+        $downloadedTime = 0;
+        $downloadedProcess = 0;
         foreach ($lines as $key => $value) {
             if($value['type'] == Util::LINE_TYPE_TSFILE)
             {
                 $newContent[] = $this->downloadItem($build->build($value['content']));
 
             }elseif($value['type'] == Util::LINE_TYPE_KEY){
-                $config = $this->reader->getInfo();
+                
                 $newContent[] = Util::replaceKeyStr($value['content'],[
                     'encrypt_method' => $config['encrypt_method'] ,
                     'iv' => $config['iv'],
@@ -55,6 +68,14 @@ class Download{
                 ]);
             }else{
                 $newContent[] = $value['content'];
+            }
+            if( $value['type'] == Util::LINE_TYPE_INF){
+                preg_match('/\#EXTINF:(.*?)\,/', $value['content'], $res);
+                $downloadedTime += doubleval($res[1]);
+                $downloadedProcess = round($downloadedTime / $totalTime, 4) * 100;
+                if($this->process_callback && is_callable($this->process_callback)){
+                    call_user_func($this->process_callback, $downloadedProcess);
+                }
             }
         }
 

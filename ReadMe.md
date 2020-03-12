@@ -30,7 +30,9 @@ $obj->save($newFileName);
 
 
 ```php
-$obj->download($saveDir);
+$obj->download($saveDir, function($process){
+    echo "下载进度：{$process}%\n";
+});
 ```
 
 ### 插入广告
