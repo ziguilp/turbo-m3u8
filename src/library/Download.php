@@ -74,11 +74,12 @@ class Download{
 
     public function downloadItem($item){
         $pathInfo = pathinfo($item);
-        $content = Util::curl($item);
         if(strpos($pathInfo['basename'],'?')!== false){
             $pathInfo['basename'] = explode("?",$pathInfo['basename'])[0];
         }
         $file = $this->save_dir.'/'.$pathInfo['basename'];
+        if(file_exists($file)) return $pathInfo['basename'];
+        $content = Util::curl($item);
         $save = Util::save($file, $content);
         
         return $save ? $pathInfo['basename'] : false;
