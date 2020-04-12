@@ -129,26 +129,29 @@ class Build{
     /**
      * 构造新路径
      */
-    public function buildM3u8(Read $reader){
-        $content = "";
+    public function buildM3u8(Read $reader, $returnArray = false){
+        $content = [];
 
         foreach ($reader->getContentAsLines() as $key => $value) {
             if($value['type'] == Util::LINE_TYPE_TSFILE)
             {
-                $content .= $this->build($value['content'])."\n";
+                $content[] = $this->build($value['content']);
             }elseif($value['type'] == Util::LINE_TYPE_KEY){
                 $config = $reader->getInfo();
-                $content .= Util::replaceKeyStr($value['content'], [
+                $content[] = Util::replaceKeyStr($value['content'], [
                     'encrypt_method' => $config['encrypt_method'] ,
                     'iv' => $config['iv'],
                     'encrypt_key_file' => $config['encrypt_key_file'] ? $this->build($config['encrypt_key_file']) : '',
-                ])."\n";
+                ]);
             }else{
-                $content .= $value['content']."\n";
+                $content[] = $value['content'];
             }
         }
-
+        
+        if($returnArray)
         return $content;
+        else
+        return implode("\n", $content);
     }
 }
 

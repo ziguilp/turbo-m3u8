@@ -26,12 +26,17 @@ class Read{
         'total_time' => 0,
     ];
     
-    public function __construct($file)
+    public function __construct($file = '')
     {
         // if(!is_file($file)){
         //     throw new SourceException("File : {$file} does not exist");
         // }
+        if($file){
+            $this->setFile($file);
+        }
+    }
 
+    public function setFile($file){
         $this->file_name = $file;
 
         $this->file_info = pathinfo($file);
@@ -39,7 +44,6 @@ class Read{
         if(!$this->check()){
             throw new SourceException("File : {$file} is not m3u8 ");
         }
-
     }
 
     /**

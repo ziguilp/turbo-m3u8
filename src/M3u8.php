@@ -7,6 +7,7 @@ use TurboM3u8\library\Build;
 use TurboM3u8\library\Util;
 use TurboM3u8\library\Clip;
 use TurboM3u8\library\Insert;
+use TurboM3u8\library\Merge;
 use TurboM3u8\library\Download;
 
 class M3u8{
@@ -60,11 +61,23 @@ class M3u8{
         return $this;
     }
 
-    public function save($file_name = null){
+    public function merge($file_name){
+        $reader = Merge::merge($this->getReader(), new Read($file_name));
+        if($reader){
+            $this->file_reader = $reader;
+        }
+        return $this;
+    }
+    
+    public function save($file_name = null, $m3u8PrePath = null){
         if(!$file_name){
             $file_name = $this->file_name;
         }
-        $build =  (new Build())->parse($this->file_name);
+        if(is_null($m3u8PrePath)){
+            $build =  (new Build())->parse($this->file_name);
+        }else{
+            $build =  (new Build())->setPrefixPath($m3u8PrePath);
+        }
         $content = $build->buildM3u8($this->getReader());
         return Util::save($file_name, $content);
     }

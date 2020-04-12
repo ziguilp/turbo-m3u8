@@ -19,7 +19,9 @@ class Insert{
         $this->reader    = $reader;
     }
 
-
+    /**
+     * 插入点
+     */
     public function add(int $insertPoint, $file, $duration){
         $this->addsList[$insertPoint] = [
             'file' => $file,
@@ -44,7 +46,7 @@ class Insert{
             if( $line['totaltime'] == 0  ){
                 $lines[] = $line['content'];
             }else{
-                if($line['type'] == Util::LINE_TYPE_INF);{
+                if($line['type'] == Util::LINE_TYPE_INF){
                     $insertPoint = $this->pickInserPoint($line['totaltime']);
                     if($insertPoint){
                         
