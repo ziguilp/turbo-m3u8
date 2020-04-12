@@ -48,4 +48,16 @@ $obj->insert( $fromTime, $adFileName, $duration);
 $obj->save($newFileName);
 ```
 
+### 合并m3u8文件
+
+##### 所合并的文件必须和原文件一致的加密方法和密钥或者不加密
+
+```php
+$file1 = '/clip_60_d43ccd5edc1b5f2c67eaae3760b7aaf2.m3u8';
+$file2 = '/uploads/20200412/9bd2664d3e9df07f777acd1c0b8ae625.m3u8';
+$obj = M3u8::input($file1);
+$obj->merge($file2);
+$obj->save('download/merge.m3u8','');
+```
+
 
