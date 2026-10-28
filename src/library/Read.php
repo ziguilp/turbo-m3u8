@@ -37,6 +37,9 @@ class Read{
     }
 
     public function setFile($file){
+        if(!is_string($file) || $file === '' || strpos($file, "\0") !== false){
+            throw new SourceException('File name is empty or invalid, nothing to read');
+        }
         $this->file_name = $file;
 
         $this->file_info = pathinfo($file);
@@ -88,7 +91,7 @@ class Read{
     /**
      * 设置内容
      */
-    public function setContent(String $content){
+    public function setContent(string $content){
         $this->readByLine(explode("\n", $content));
         $this->check();
         $this->content = $content;
@@ -99,17 +102,44 @@ class Read{
      * 读取内容
      */
     public function getContent(){
-        if(!$this->content){
-            $this->content = file_get_contents($this->file_name);
+        if($this->content === null){
+            if(!is_string($this->file_name) || $this->file_name === '' || strpos($this->file_name, "\0") !== false){
+                throw new SourceException('File name is empty or invalid, nothing to read');
+            }
+            $content = @file_get_contents($this->file_name);
+            if($content === false){
+                throw new SourceException($this->describeReadFailure());
+            }
+            $this->content = $content;
         }
         return $this->content;
+    }
+
+    /**
+     * 读取失败时给出可定位的原因，而不是被后续的 check() 误报成"不是 m3u8"
+     */
+    protected function describeReadFailure(){
+        $file = $this->file_name;
+        if(!is_string($file) || $file === ''){
+            return "File name is empty, nothing to read";
+        }
+        if(preg_match('/^https?\:/i', $file)){
+            return "File : {$file} cannot be fetched (request failed or returned no content)";
+        }
+        if(!file_exists($file)){
+            return "File : {$file} does not exist";
+        }
+        if(!is_readable($file)){
+            return "File : {$file} is not readable";
+        }
+        return "File : {$file} cannot be read";
     }
 
     /**
      * 以行读取内容
      */
     public function getContentAsLines(){
-        if(!$this->content_lines){
+        if($this->content_lines === null){
             $content = $this->getContent();
             $content_lines = explode("\n", $content);
             $this->readByLine($content_lines);
@@ -121,7 +151,7 @@ class Read{
     /**
      * 设置行内容
      */
-    public function setContentLines(Array $lines){
+    public function setContentLines(array $lines){
         $this->readByLine($lines);
         $this->check();
         $this->content = implode("\n", $lines);
@@ -139,11 +169,11 @@ class Read{
         return false;
     }
 
-    protected function readByLine(Array $content_lines){
+    protected function readByLine(array $content_lines){
         $this->content_lines = [];
         $parse = new Parse($this);
         foreach ($content_lines as $key => $line) {
-            $line = trim($line);
+            $line = trim($line ?? '');
             if($line){
                 $this->content_lines[] = $parse->analyse($line);
             }

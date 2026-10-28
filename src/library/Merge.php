@@ -57,6 +57,6 @@ class Merge{
             $readers[] = new Read($value);
         }
 
-        return call_user_func_array('\TurboM3u8\library\Merge::merge', $readers);
+        return self::merge(...$readers);
     }
 }

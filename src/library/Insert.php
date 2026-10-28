@@ -50,7 +50,7 @@ class Insert{
                     $insertPoint = $this->pickInserPoint($line['totaltime']);
                     if($insertPoint){
                         
-                        if($contents[$key - 1]['type'] == Util::LINE_TYPE_TSFILE)
+                        if(isset($contents[$key - 1]) && $contents[$key - 1]['type'] == Util::LINE_TYPE_TSFILE)
                             $lines[] = '#EXT-X-DISCONTINUITY';
 
                         $lines[] = "#EXTINF:".$insertPoint['duration'].",";

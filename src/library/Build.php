@@ -24,7 +24,7 @@ class Build{
 
     protected $cache = [];
 
-    public function __construct(String $prefix = '')
+    public function __construct(string $prefix = '')
     {
         $this->setPrefixPath($prefix);
     }
@@ -32,7 +32,7 @@ class Build{
     /**
      * 设置域名
      */
-    public function setDomain(String $domain){
+    public function setDomain(string $domain){
         $this->domain = $domain;
         return $this;
     }
@@ -40,7 +40,7 @@ class Build{
     /**
      * 设置路径
      */
-    public function setPrefixPath(String $prefix){
+    public function setPrefixPath(string $prefix){
         $pathDir = str_replace( $this->domain, '', $prefix);
         $this->prefixPathArr = explode("/", $pathDir);
         $this->prefixPath = $pathDir;
@@ -56,7 +56,7 @@ class Build{
     /**
      * 解析m3u8地址，得出域名和路径文件夹
      */
-    public function parse(String $m3u8FileName){
+    public function parse(string $m3u8FileName){
         $pathInfo = parse_url($m3u8FileName);
         if($pathInfo && isset($pathInfo['scheme'])&&isset($pathInfo['host'])){
             $this->setDomain($pathInfo['scheme'].'://'.$pathInfo['host']);
@@ -106,7 +106,7 @@ class Build{
     /**
      * 构造新路径
      */
-    public function build(String $str){
+    public function build(string $str){
 
         $str = trim($str);
         if(preg_match('/^https?\:/',$str)){

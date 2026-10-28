@@ -31,7 +31,9 @@ class Download{
 
     public function setSaveDir($dir){
         if(!is_dir($dir)){
-            mkdir($dir, 755, true);
+            if(!@mkdir($dir, 0755, true) && !is_dir($dir)){
+                throw new ParamException("Cannot create directory: {$dir}");
+            }
         }
         $this->save_dir = $dir;
         return $this;
@@ -70,9 +72,10 @@ class Download{
                 $newContent[] = $value['content'];
             }
             if( $value['type'] == Util::LINE_TYPE_INF){
-                preg_match('/\#EXTINF:(.*?)\,/', $value['content'], $res);
-                $downloadedTime += doubleval($res[1]);
-                $downloadedProcess = round($downloadedTime / $totalTime, 4) * 100;
+                if(preg_match('/\#EXTINF:(.*?)\,/', $value['content'], $res) && isset($res[1])){
+                    $downloadedTime += doubleval($res[1]);
+                }
+                $downloadedProcess = $this->calcProcess($downloadedTime, $totalTime);
                 if($this->process_callback && is_callable($this->process_callback)){
                     call_user_func($this->process_callback, $downloadedProcess);
                 }
@@ -91,6 +94,19 @@ class Download{
         }
 
         return $filename;
+    }
+
+    /**
+     * 下载进度百分比
+     *
+     * $totalTime 为 0 时（空 m3u8 或分片时长全为 0）不能做除法：
+     * PHP 7 只是 warning 并得到 INF，PHP 8 直接抛 DivisionByZeroError。
+     */
+    protected function calcProcess($downloadedTime, $totalTime){
+        if($totalTime <= 0){
+            return 0;
+        }
+        return round($downloadedTime / $totalTime, 4) * 100;
     }
 
     public function downloadItem($item){

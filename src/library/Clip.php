@@ -17,7 +17,7 @@ class Clip{
     
     protected $m3u8ContentLinesArr = [];
 
-    public function __construct( Read $reader, int $startTime = 0, int $duration = null)
+    public function __construct( Read $reader, int $startTime = 0, ?int $duration = null)
     {
         $this->reader    = $reader;
         $this->startTime = $startTime;
@@ -50,8 +50,12 @@ class Clip{
                 }
 
                 $duration = doubleval($line['totaltime']) - $startTime;
-                
-                if($duration >= $this->duration && ($line['type'] == Util::LINE_TYPE_TSFILE || $line['type'] == Util::LINE_TYPE_END )){
+
+                #$this->duration 为 null 表示"裁到结尾"，此时不能参与比较：
+                #PHP 会把 null 折算成 0，令 $duration >= null 在第一个分片处即为真而提前 break
+                if($this->duration !== null
+                    && $duration >= $this->duration
+                    && ($line['type'] == Util::LINE_TYPE_TSFILE || $line['type'] == Util::LINE_TYPE_END )){
                     $lines[] = $line['content'];
                     break;
                 }

@@ -11,8 +11,6 @@ use TurboM3u8\library\Merge;
 use TurboM3u8\library\Download;
 
 class M3u8{
-    
-    static $instance = [];
 
     public $file_name = null;
 
@@ -25,13 +23,13 @@ class M3u8{
 
     /**
      * 输入m3u8
+     *
+     * 每次调用都返回全新实例。clip()/insert()/merge() 会就地改写 reader 的内存副本，
+     * 一旦按文件名缓存实例，同一文件第二次 input() 拿到的就是上一次操作后的残留状态，
+     * 而不是磁盘上的原始内容。
      */
     static public function input($file){
-        $hash = md5($file);
-        if(!isset(self::$instance[$hash])){
-            self::$instance[$hash] = new self($file);
-        }
-        return self::$instance[$hash];
+        return new self($file);
     }
 
     public function getReader(){
@@ -46,7 +44,7 @@ class M3u8{
         return $this->getReader()->getInfo();
     }
 
-    public function clip(int $starttime = 0, int $duration = null, $method = 'left'){
+    public function clip(int $starttime = 0, ?int $duration = null, $method = 'left'){
         (new Clip($this->getReader(), $starttime, $duration))->clip($method);
         return $this;
     }
